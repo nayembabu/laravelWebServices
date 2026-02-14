@@ -9,7 +9,7 @@ class UserServiceOrder extends Model
 {
     use HasFactory;
 
-    protected $table = 'user_service_orders'; // টেবিল নাম
+    protected $table = 'user_service_orders';
 
     protected $fillable = [
         'user_id',

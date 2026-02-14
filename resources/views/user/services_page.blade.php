@@ -147,10 +147,20 @@
                                 <th>ডাউনলোড</th>
                                 <th>রেট</th>
                                 <th>সময়</th>
-                                <th>অ্যাকশন</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            @foreach ($querys as $sng)
+                                <tr>
+                                    <td>{{ $sng->name; }}</td>
+                                    <td>{{ $sng->order_details; }}</td>
+                                    <td>{{ $sng->status; }}</td>
+                                    <td><button class="btn btn-success btn-sm orders-download-btn"><i class="bi bi-download"></i></button></td>
+                                    <td>{{ $sng->amount; }}</td>
+                                    <td>{{ $sng->created_at; }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                     <p class="text-muted text-center" id="svcEmptyMessage">এখনো কোনো অর্ডার যোগ করা হয়নি। একটি সার্ভিস সিলেক্ট করে শুরু করুন!</p>
                 </div>

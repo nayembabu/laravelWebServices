@@ -24,8 +24,10 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ADMIN
 Route::middleware(['auth','admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])
-        ->name('admin.dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/allOrders', [AdminController::class, 'all_waiting_orders'])->name('admin.order_waiting');
+    Route::get('/allorder_see', [AdminController::class, 'all_waiting_order_see'])->name('admin.order_waiting_see');
+    Route::post('/user/assign-admin-order', [AdminController::class, 'assignAdminOrder'])->name('admin.assign_admin_order');
 });
 
 // USER
@@ -39,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('deposite', [UserController::class, 'deposite_request'])->name('user.deposite_req');
     Route::get('profile', [UserController::class, 'view_user_profile'])->name('user.profile');
     Route::post('profile', [UserController::class, 'update_user_profile'])->name('user.profileupdate');
+
 });
 
 Route::get('/permission-denied', function () {

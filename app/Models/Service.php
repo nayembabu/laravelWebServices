@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
 {
-        protected $table = 'services';
+    use HasFactory;
+    protected $table = 'services';
 
-        protected $fillable = [
-            'name',
-            'description',
-            'rate',
-            'status',
-            'category',
-            'description'
-        ];
+    protected $fillable = [
+        'name',
+        'description',
+        'rate',
+        'status',
+        'category',
+        'description'
+    ];
 
-    public function service()
+    public function userServiceOrder()
     {
-        return $this->belongsTo(Service::class, 'service_id');
+        return $this->hasMany(UserServiceOrder::class, 'service_id');
     }
 }
 

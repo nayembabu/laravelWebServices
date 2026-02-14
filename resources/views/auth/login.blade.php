@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>লগইন - সার্ভিস বাজার</title>
-  
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -15,7 +15,7 @@
       --dark: #0f172a;
       --light-bg: #f8fafc;
     }
-    
+
     body {
       background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%);
       min-height: 100vh;
@@ -23,20 +23,20 @@
       align-items: center;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    
+
     .login-container {
       max-width: 420px;
       width: 100%;
       margin: 2rem auto;
     }
-    
+
     .card {
       border: none;
       border-radius: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.08);
       overflow: hidden;
     }
-    
+
     .card-header {
       background: var(--primary);
       color: white;
@@ -44,29 +44,29 @@
       padding: 2.5rem 1.5rem 1.5rem;
       border-bottom: none;
     }
-    
+
     .btn-primary {
       background-color: var(--primary);
       border-color: var(--primary);
       padding: 0.75rem 1.5rem;
       font-weight: 500;
     }
-    
+
     .btn-primary:hover {
       background-color: var(--primary-dark);
       border-color: var(--primary-dark);
     }
-    
+
     .form-control:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 0.25rem rgba(0,208,132,0.25);
     }
-    
+
     a {
       color: var(--primary);
       text-decoration: none;
     }
-    
+
     a:hover {
       text-decoration: underline;
     }
@@ -80,7 +80,7 @@
 <body>
 
   <div class="login-container">
-    
+
     <div class="text-center mb-4">
       <h2 class="fw-bold text-success">সার্ভিস বাজার</h2>
       <p class="text-muted">আপনার অ্যাকাউন্টে লগইন করুন</p>
@@ -95,9 +95,9 @@
       <div class="card-header">
         <h4 class="mb-0">স্বাগতম!</h4>
       </div>
-      
+
       <div class="card-body p-4 p-md-5">
-        
+
         <form action="{{ route('login.submit') }}" method="post">
           @csrf
           <div class="mb-4">
@@ -111,7 +111,6 @@
           <div class="mb-4">
             <div class="d-flex justify-content-between">
               <label for="password" class="form-label fw-medium">পাসওয়ার্ড</label>
-              <a href="#" class="small">পাসওয়ার্ড ভুলে গেছেন?</a>
             </div>
             <div class="input-group input-group-lg">
               <span class="input-group-text"><i class="bi bi-lock"></i></span>
@@ -131,7 +130,7 @@
           </button>
 
           <div class="text-center">
-            <p class="mb-0">এখনো অ্যাকাউন্ট নেই? 
+            <p class="mb-0">এখনো অ্যাকাউন্ট নেই?
               <a href="{{ route('register') }}" class="fw-medium">রেজিস্টার করুন</a>
             </p>
           </div>

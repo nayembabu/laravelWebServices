@@ -13,13 +13,13 @@
          <link rel="stylesheet" href="{{ asset('plugin/jquery-ui/jquery-ui.min.css') }}">
          <link rel="stylesheet" href="{{ asset('plugin/sa2/dist/sweetalert2.min.css') }}">
          <link rel="stylesheet" href="{{ asset('plugin/toastr/build/toastr.min.css') }}">
-         
+
         <!-- Custom CSS -->
         <link rel="stylesheet" href="{{ asset('plugin/css/app.css') }}">
 
         @stack('styles')
 
-        
+
         <!-- ALL JS -->
         <script src="{{ asset('plugin/bt5/js/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ asset('plugin/jquery-4.0.0.min.js') }}"></script>
@@ -30,7 +30,7 @@
 
     </head>
     <body>
-        
+
 		<div class="wrapper d-flex align-items-stretch">
             @include('partials.navbar')
             @yield('content')
@@ -70,6 +70,6 @@
 
         </div>
         @stack('scripts')
-        
+
     </body>
 </html>

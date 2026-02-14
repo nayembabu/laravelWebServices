@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
-
 
 use App\Models\Service;
 use App\Models\UserServiceOrder;
@@ -30,7 +30,8 @@ class UserController extends Controller
     public function view_all_services()
     {
         $services = Service::all();
-        return view('user.services_page', compact('services'));
+        $querys = UserServiceOrder::with('service')->where('user_id', Auth::id())->whereDate('created_at', Carbon::today())->orderBy('id', 'desc')->get();
+        return view('user.services_page', compact('services', 'querys'));
     }
 
     public function order_services(Request $request)
