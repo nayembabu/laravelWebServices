@@ -121,12 +121,19 @@
             <!-- Order Details Section -->
             <div id="svcOrderDetails" class="card border-primary shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="bi bi-file-text me-2"></i>অর্ডারের বিস্তারিত লিখুন</h5>
-                    <div class="mb-3">
-                        <label for="svcDetails" class="form-label fw-semibold">আপনার প্রয়োজনীয়তা / বিবরণ</label>
-                        <textarea  class="form-control form-control-lg" required name="order_details" id="svcDetails" rows="6" placeholder="এখাবে বিস্তারিত লিখুন। 123456789 - আক্কাস"></textarea>
-                    </div>
+
+                    @if(setting('service_order_enabled',1))
+                        <h5 class="card-title text-primary"><i class="bi bi-file-text me-2"></i>অর্ডারের বিস্তারিত লিখুন</h5>
+                        <div class="mb-3">
+                            <label for="svcDetails" class="form-label fw-semibold">আপনার প্রয়োজনীয়তা / বিবরণ</label>
+                            <textarea  class="form-control form-control-lg" required name="order_details" id="svcDetails" rows="6" placeholder="এখাবে বিস্তারিত লিখুন। 123456789 - আক্কাস"></textarea>
+                        </div>
                     <button type="submit" id="svcAddOrder" class="btn btn-success btn-lg px-5"><i class="bi bi-plus-circle me-2"></i>অর্ডারে যোগ করুন</button>
+                    @else
+                        <div class="alert alert-warning text-center">
+                            ⚠️ সার্ভিস অর্ডার বর্তমানে বন্ধ আছে
+                        </div>
+                    @endif
                 </div>
             </div>
         </form>

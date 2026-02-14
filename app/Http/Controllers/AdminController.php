@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
 
+use App\Models\User;
 use App\Models\Service;
 use App\Models\UserServiceOrder;
 use App\Models\UserBalanceAdd;
@@ -43,7 +44,17 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        return view('admin.dashboard');
+
+        $totalUsers = User::count();
+
+        $totalOrders = UserServiceOrder::count();
+
+        $pendingDeposits = UserRecharge::where('status', 'pending')
+                                        ->whereNull('approved_at')
+                                        ->count();
+
+        $pendingOrders = UserServiceOrder::where('status', 'pending')->count();
+        return view('admin.dashboard', compact('totalUsers', 'totalOrders', 'pendingDeposits', 'pendingOrders'));
     }
 
     public function all_waiting_orders()
@@ -236,6 +247,86 @@ class AdminController extends Controller
         }
     }
 
+    public function toggleServiceOrder(Request $request)
+    {
+        $current = setting('service_order_enabled',1);
+
+        DB::table('settings')
+            ->where('key','service_order_enabled')
+            ->update(['value' => !$current]);
+
+        return back()->with('success','Service ordering status updated');
+    }
+
+    public function deposit_list()
+    {
+        return view('admin.deposit_list_file');
+    }
+
+    public function pendingDeposits()
+    {
+        $deposits = UserRecharge::with('user')
+            ->where('status','pending')
+            ->whereNull('approved_at')
+            ->get();
+
+        return response()->json($deposits);
+    }
+
+    public function update_deposit_status(Request $request)
+    {
+        $request->validate([
+            'deposit_id' => 'required|exists:user_recharges,id',
+            'type' => 'required|in:approve,reject'
+        ]);
+
+        try {
+            $deposit = UserRecharge::findOrFail($request->deposit_id);
+
+            if ($request->type === 'approve') {
+
+                DB::beginTransaction();
+
+                $deposit->update([
+                    'status' => 'approved',
+                    'approved_at' => Carbon::now(),
+                    'approved_by' => auth()->id(),
+                ]);
+
+                // Balance add log
+                UserBalanceAdd::create([
+                    'user_id' => $deposit->user_id,
+                    'amount' => $deposit->amount,
+                    'source' => 'deposit',
+                    'note' => 'Deposit approved, trx ID: ' . $deposit->trx_id,
+                ]);
+
+                // 👉 যদি তোমার users table এ balance column থাকে
+                // তাহলে এটা enable করো 👇
+                // DB::table('users')
+                //     ->where('id', $deposit->user_id)
+                //     ->increment('balance', $deposit->amount);
+                DB::commit();
+
+            } else {
+                $deposit->update([
+                    'status' => 'rejected',
+                    'approved_at' => Carbon::now(),
+                    'approved_by' => auth()->id(),
+                ]);
+            }
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function user_list()
+    {
+        return view('admin.user_list_file');
+    }
 
 
 }

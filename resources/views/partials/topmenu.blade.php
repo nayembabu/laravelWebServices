@@ -14,7 +14,7 @@
                     <a class="nav-link admin-nav-link active" href="{{ route('admin.dashboard') }}"><i class="bi bi-house-door me-2"></i>ড্যাশবোর্ড</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-people me-2"></i>ইউজার</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.user_list') }}"><i class="bi bi-people me-2"></i>ইউজার</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link admin-nav-link" href="{{ route('admin.order_waiting') }}"><i class="bi bi-cart-check me-2"></i>অর্ডার</a>
@@ -23,7 +23,7 @@
                     <a class="nav-link admin-nav-link" href="{{ route('admin.mybox_order_waiting') }}"><i class="bi bi-bag me-2"></i>আমার বক্স</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-wallet2 me-2"></i>ডিপোজিট</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.deposit') }}"><i class="bi bi-wallet2 me-2"></i>ডিপোজিট</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link admin-nav-link" href="#"><i class="bi bi-graph-up me-2"></i>রিপোর্ট & অ্যানালিটিক্স</a>

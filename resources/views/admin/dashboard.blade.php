@@ -28,35 +28,45 @@
 
 @section('content')
 
-        <h2 class="mb-4 fw-bold">অ্যাডমিন ড্যাশবোর্ড ওভারভিউ</h2>
+        <h2 class="mb-4 fw-bold">অ্যাডমিন ড্যাশবোর্ড ওভারভিউ </h2>
+        <form action="{{ route('admin.setting.toggle.service') }}" method="POST">
+            @csrf
+            @php
+                $enabled = setting('service_order_enabled',1);
+            @endphp
+            <button class="btn {{ $enabled ? 'btn-success' : 'btn-danger' }}">
+                {{ $enabled ? 'Service ON' : 'Service OFF' }}
+            </button>
+        </form>
+
         <!-- Stats -->
         <div class="row g-4 mb-5">
             <div class="col-md-3 col-sm-6">
                 <div class="card admin-stat-card text-center p-4 bg-primary text-white">
                     <i class="bi bi-people fs-1 mb-3"></i>
-                    <h3 class="fw-bold mb-0">1,234</h3>
+                    <h3 class="fw-bold mb-0">{{ number_format($totalUsers) }}</h3>
                     <p class="mb-0">টোটাল ইউজার</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="card admin-stat-card text-center p-4 bg-success text-white">
                     <i class="bi bi-cart4 fs-1 mb-3"></i>
-                    <h3 class="fw-bold mb-0">892</h3>
+                    <h3 class="fw-bold mb-0">{{ number_format($totalOrders) }}</h3>
                     <p class="mb-0">টোটাল অর্ডার</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="card admin-stat-card text-center p-4 bg-info text-white">
                     <i class="bi bi-hourglass-split fs-1 mb-3"></i>
-                    <h3 class="fw-bold mb-0">47</h3>
+                    <h3 class="fw-bold mb-0">{{ number_format($pendingDeposits) }}</h3>
                     <p class="mb-0">পেন্ডিং ডিপোজিট</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="card admin-stat-card text-center p-4 bg-warning text-white">
-                    <i class="bi bi-currency-dollar fs-1 mb-3"></i>
-                    <h3 class="fw-bold mb-0">$45,780</h3>
-                    <p class="mb-0">টোটাল রেভেনিউ</p>
+                    <i class="bi bi-bag fs-1 mb-3"></i>
+                    <h3 class="fw-bold mb-0">{{ number_format($pendingOrders) }}</h3>
+                    <p class="mb-0">পেন্ডিং অর্ডার</p>
                 </div>
             </div>
         </div>

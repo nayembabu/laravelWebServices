@@ -1,5 +1,7 @@
 <?php
 
+    use Illuminate\Support\Facades\DB;
+
     if (!function_exists('number_format_bd')) {
         function number_format_bd($number) {
             $number = (string) $number;
@@ -54,3 +56,18 @@
         }
     }
 
+    function setting($key, $default = null)
+    {
+        static $settings = null;
+
+        if ($settings === null) {
+            $settings = DB::table('settings')
+                ->pluck('value','key')
+                ->toArray();
+        }
+
+        return $settings[$key] ?? $default;
+    }
+
+
+    

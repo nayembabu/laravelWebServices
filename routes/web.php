@@ -32,6 +32,16 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function () {
     Route::post('/user/submit-admin-order', [AdminController::class, 'submitAdminOrder'])->name('admin.submit_order');
     Route::post('/user/reject-admin-order', [AdminController::class, 'rejectAdminOrder'])->name('admin.reject_order');
     Route::get('/mybox-orders', [AdminController::class, 'mybox_orders'])->name('admin.mybox_order_waiting_get');
+    Route::post('/settings/service-toggle', [AdminController::class,'toggleServiceOrder'])->name('admin.setting.toggle.service');
+
+    Route::get('/deposit', [AdminController::class, 'deposit_list'])->name('admin.deposit');
+    Route::post('/deposit/update-status', [AdminController::class, 'update_deposit_status'])->name('admin.deposit.update_status');
+    Route::get('/users', [AdminController::class, 'user_list'])->name('admin.user_list');
+    Route::post('/users/update-balance', [AdminController::class, 'update_user_balance'])->name('admin.users.update_balance');
+    Route::post('/users/update-balance-cut', [AdminController::class, 'update_user_balance_cut'])->name('admin.users.update_balance_cut');
+    Route::post('/users/update-balance-add', [AdminController::class, 'update_user_balance_add'])->name('admin.users.update_balance_add');
+    Route::get('/deposit/pending', [AdminController::class,'pendingDeposits'])->name('admin.deposit.pending');
+
 });
 
 // USER
