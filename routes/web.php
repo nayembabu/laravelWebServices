@@ -27,7 +27,11 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/allOrders', [AdminController::class, 'all_waiting_orders'])->name('admin.order_waiting');
     Route::get('/allorder_see', [AdminController::class, 'all_waiting_order_see'])->name('admin.order_waiting_see');
+    Route::get('/allorder_mybox_see', [AdminController::class, 'all_waiting_mybox_order_see'])->name('admin.mybox_order_waiting');
     Route::post('/user/assign-admin-order', [AdminController::class, 'assignAdminOrder'])->name('admin.assign_admin_order');
+    Route::post('/user/submit-admin-order', [AdminController::class, 'submitAdminOrder'])->name('admin.submit_order');
+    Route::post('/user/reject-admin-order', [AdminController::class, 'rejectAdminOrder'])->name('admin.reject_order');
+    Route::get('/mybox-orders', [AdminController::class, 'mybox_orders'])->name('admin.mybox_order_waiting_get');
 });
 
 // USER

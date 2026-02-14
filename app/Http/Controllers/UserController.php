@@ -145,7 +145,9 @@ class UserController extends Controller
                 'type' => $order->service->name ?? 'নির্দিষ্ট নেই',
                 'info' => $order->order_details,
                 'status' => $order->status,
-                'downloadable' => $order->status === 'completed',
+                'note' => $order->admin_note ?? '',
+                'downloadable' => $order->status === 'approved',
+                'file' => $order->admin_file ? $order->admin_file : null,
                 'rate' => '৳'.number_format($order->amount),
                 'time' => $order->created_at->format('Y-m-d H:i')
             ];

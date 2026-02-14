@@ -143,6 +143,7 @@
                             <tr>
                                 <th>অর্ডারে ধরন</th>
                                 <th>তথ্য</th>
+                                <th>নোট</th>
                                 <th>রিসিভ</th>
                                 <th>ডাউনলোড</th>
                                 <th>রেট</th>
@@ -151,18 +152,65 @@
                         </thead>
                         <tbody>
                             @foreach ($querys as $sng)
+
+                                @php
+                                    // 🎨 Status badge class
+                                    $statusClass = match($sng->status) {
+                                        'approved' => 'bg-success',
+                                        'rejected' => 'bg-danger',
+                                        'pending' => 'bg-warning text-dark',
+                                        default => 'bg-secondary'
+                                    };
+
+                                    // 📂 File url
+                                    $fileUrl = $sng->admin_file ? asset('storage/'.$sng->admin_file) : null;
+                                @endphp
+
                                 <tr>
-                                    <td>{{ $sng->name; }}</td>
-                                    <td>{{ $sng->order_details; }}</td>
-                                    <td>{{ $sng->status; }}</td>
-                                    <td><button class="btn btn-success btn-sm orders-download-btn"><i class="bi bi-download"></i></button></td>
-                                    <td>{{ $sng->amount; }}</td>
-                                    <td>{{ $sng->created_at; }}</td>
+                                    <td>{{ $sng->name }}</td>
+                                    <td>{{ $sng->order_details }}</td>
+                                    <td>{{ $sng->admin_note ?? 'N/A' }}</td>
+
+                                    {{-- ✅ Status Badge --}}
+                                    <td>
+                                        <span class="badge {{ $statusClass }}">
+                                            {{ ucfirst($sng->status) }}
+                                        </span>
+                                    </td>
+
+                                    {{-- ✅ Download Button Logic --}}
+                                    <td>
+                                        @if($sng->status === 'approved' && $fileUrl)
+                                            <a href="{{ $fileUrl }}" target="_blank" class="btn btn-success btn-sm">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+
+                                        @elseif($sng->status === 'pending')
+                                            <button class="btn btn-warning btn-sm" disabled>
+                                                Processing
+                                            </button>
+
+                                        @elseif($sng->status === 'rejected')
+                                            <button class="btn btn-danger btn-sm" disabled>
+                                                Rejected
+                                            </button>
+
+                                        @else
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                N/A
+                                            </button>
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $sng->amount }}</td>
+                                    <td>{{ $sng->created_at->format('d M Y, h:i A') }}</td>
                                 </tr>
+
                             @endforeach
                         </tbody>
+
                     </table>
-                    <p class="text-muted text-center" id="svcEmptyMessage">এখনো কোনো অর্ডার যোগ করা হয়নি। একটি সার্ভিস সিলেক্ট করে শুরু করুন!</p>
+                    <p class="text-muted text-center" id="svcEmptyMessage"></p>
                 </div>
             </div>
         </div>

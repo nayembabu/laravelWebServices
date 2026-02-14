@@ -31,8 +31,9 @@
             background: #495057;
             color: #fff;
         }
+        .orders-status-processing { background: #d1ecf1; color: #856404; }
         .orders-status-pending { background: #fff3cd; color: #856404; }
-        .orders-status-processing { background: #d1ecf1; color: #0c5460; }
+        .orders-status-rejected { background: #f77f7f; color: #34080b; }
         .orders-status-completed { background: #d4edda; color: #155724; }
         .orders-download-btn.disabled {
             cursor: not-allowed;
@@ -117,6 +118,7 @@
 
 @push('scripts')
 <script>
+    const storageUrl = "{{ asset('storage') }}";
 function fetchOrders({ search = '', minDate = '', maxDate = '', page = 1 }) {
     $('#ordersLoading').show();
 
@@ -130,13 +132,18 @@ function fetchOrders({ search = '', minDate = '', maxDate = '', page = 1 }) {
                 html = '<tr><td colspan="7" class="text-center text-muted py-4">কোনো অর্ডার পাওয়া যায়নি।</td></tr>';
             } else {
                 res.data.forEach(item => {
-                    const statusClass = item.status === 'completed' ? 'orders-status-completed' :
-                                        item.status === 'processing' ? 'orders-status-processing' :
+                    const statusClass = item.status === 'approved' ? 'orders-status-completed' :
+                                        item.status === 'rejected' ? 'orders-status-rejected' :
+                                        item.status === 'pending' ? 'orders-status-processing' :
                                         'orders-status-pending';
 
-                    const downloadBtn = item.downloadable
-                        ? '<button class="btn btn-success btn-sm orders-download-btn"><i class="bi bi-download"></i></button>'
-                        : '<button class="btn btn-success btn-sm orders-download-btn disabled" disabled><i class="bi bi-download"></i></button>';
+                    const downloadBtn =
+                            item.status === 'rejected'
+                                ? item.note ? `<span class="badge bg-danger">রিজেক্ট কারণ: ${item.note}</span>` : `<span class="badge bg-danger">রিজেক্ট হয়েছে</span>`
+                                : (item.downloadable && item.file
+                                    ? `<a class="btn btn-success btn-sm orders-download-btn" href="${storageUrl}/${item.file}" target="_blank"><i class="bi bi-download"></i></a>`
+                                    : '<button class="btn btn-info btn-sm orders-download-btn disabled" disabled><i class="bi bi-download"></i></button>');
+
 
                     html += `<tr>
                                 <td class="fw-semibold">${item.type}</td>

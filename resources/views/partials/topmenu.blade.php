@@ -14,13 +14,16 @@
                     <a class="nav-link admin-nav-link active" href="{{ route('admin.dashboard') }}"><i class="bi bi-house-door me-2"></i>ড্যাশবোর্ড</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-people me-2"></i>ইউজার ম্যানেজমেন্ট</a>
+                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-people me-2"></i>ইউজার</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="{{ route('admin.order_waiting') }}"><i class="bi bi-cart-check me-2"></i>অর্ডার ম্যানেজমেন্ট</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.order_waiting') }}"><i class="bi bi-cart-check me-2"></i>অর্ডার</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-wallet2 me-2"></i>ডিপোজিট রিকোয়েস্ট</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.mybox_order_waiting') }}"><i class="bi bi-bag me-2"></i>আমার বক্স</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-wallet2 me-2"></i>ডিপোজিট</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link admin-nav-link" href="#"><i class="bi bi-graph-up me-2"></i>রিপোর্ট & অ্যানালিটিক্স</a>
@@ -32,9 +35,6 @@
 
             <!-- Right Side -->
             <div class="d-flex align-items-center gap-4">
-                <div class="admin-balance">
-                    <i class="bi bi-cash-stack me-2"></i>টোটাল রেভেনিউ: $45,780
-                </div>
                 <div class="dropdown">
                     <a class="dropdown-toggle text-white text-decoration-none d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-3 me-2"></i>
