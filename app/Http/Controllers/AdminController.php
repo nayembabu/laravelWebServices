@@ -328,6 +328,11 @@ class AdminController extends Controller
         return view('admin.user_list_file');
     }
 
+    public function adminServicesList()
+    {
+        return view('admin.services_list');
+    }
+
 
 }
 

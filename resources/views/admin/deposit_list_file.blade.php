@@ -49,12 +49,6 @@
     <script>
         // jQuery AJAX for Approve & Reject
         $(document).ready(function () {
-            // CSRF Token (Laravel এর জন্য, অন্য ফ্রেমওয়ার্কে দরকার না হলে কমেন্ট আউট করো)
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
 
             loadPendingDeposits();
             function loadPendingDeposits() {
@@ -116,7 +110,7 @@
                         data: {
                             deposit_id: depositId,
                             type: 'approve',
-                            _token: $('meta[name="csrf-token"]').attr('content')
+                            _token: "{{ csrf_token() }}",
                         },
                         success: function (response) {
                             loadPendingDeposits();
@@ -153,7 +147,7 @@
                         data: {
                             deposit_id: depositId,
                             type: 'reject',
-                            _token: $('meta[name="csrf-token"]').attr('content')
+                            _token: "{{ csrf_token() }}",
                         },
                         success: function (response) {
                             row.find('.status-badge')

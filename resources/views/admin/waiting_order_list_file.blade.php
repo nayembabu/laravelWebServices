@@ -96,8 +96,6 @@
         // প্রতি 3 মিনিটে রিফ্রেশ (180000ms)
         setInterval(loadLastOrders, 180000);
 
-
-
         // ✅ Add button click
         $(document).on('click', '.add-admin-btn', function(){
             let orderId = $(this).data('id');

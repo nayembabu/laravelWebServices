@@ -40,7 +40,9 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function () {
     Route::post('/users/update-balance', [AdminController::class, 'update_user_balance'])->name('admin.users.update_balance');
     Route::post('/users/update-balance-cut', [AdminController::class, 'update_user_balance_cut'])->name('admin.users.update_balance_cut');
     Route::post('/users/update-balance-add', [AdminController::class, 'update_user_balance_add'])->name('admin.users.update_balance_add');
+    Route::post('/users/update-password', [AdminController::class, 'update_user_password'])->name('admin.users.update_password');
     Route::get('/deposit/pending', [AdminController::class,'pendingDeposits'])->name('admin.deposit.pending');
+    Route::get('/serviceslist', [AdminController::class,'adminServicesList'])->name('admin.services.list');
 
 });
 
@@ -61,3 +63,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/permission-denied', function () {
     return view('errors.permission');
 })->name('permission.denied');
+
+// Route::get('/asdadmin', function () {
+//     return 'middleware working';
+// });
+
+

@@ -275,9 +275,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/user/add-balance', // তোমার রুট
+                            url: "{{ route('admin.users.update_balance_add') }}", // তোমার রুট
                             method: 'POST',
-                            data: { user_id: currentUserId, amount: amount },
+                            data: {
+                                user_id: currentUserId,
+                                amount: amount,
+                                _token: "{{ csrf_token() }}",
+                            },
                             success: function (response) {
                                 let newBalance = parseFloat(response.new_balance || 0);
                                 $('#modal-balance').text('$' + newBalance.toFixed(2));
@@ -310,9 +314,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/user/deduct-balance', // তোমার রুট
+                            url: "{{ route('admin.users.update_balance_cut') }}", // তোমার রুট
                             method: 'POST',
-                            data: { user_id: currentUserId, amount: amount },
+                            data: {
+                                user_id: currentUserId,
+                                amount: amount,
+                                _token: "{{ csrf_token() }}",
+                            },
                             success: function (response) {
                                 let newBalance = parseFloat(response.new_balance || 0);
                                 $('#modal-balance').text('$' + newBalance.toFixed(2));
@@ -353,9 +361,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/user/change-password', // তোমার রুট
+                            url: "{{ route('admin.users.update_password') }}", // তোমার রুট
                             method: 'POST',
-                            data: { user_id: currentUserId, new_password: newPass },
+                            data: {
+                                user_id: currentUserId, new_password: newPass },
+                                new_password: newPass,
+                                _token: "{{ csrf_token() }}",
+                            },
                             success: function () {
                                 Swal.fire('Success!', 'Password changed successfully.', 'success');
                                 $(this)[0].reset();
@@ -363,7 +375,7 @@
                             error: function () {
                                 Swal.fire('Error!', 'Failed to change password.', 'error');
                             }
-                        });
+                        })
                     }
                 });
             });
