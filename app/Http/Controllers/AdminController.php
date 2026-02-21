@@ -151,11 +151,16 @@ class AdminController extends Controller
             $file = $request->file('submitted_file');
             $fileName = time() . '_' . $file->getClientOriginalName();
 
-            $path = $file->storeAs(
-                'admin_orders',
-                $fileName,
-                'public'
-            );
+            // 🔹 public/storage/admin_orders এ সরাসরি আপলোড
+            $destinationPath = public_path('storage/admin_orders');
+        
+            // ফাইল move করা
+            $file->move($destinationPath, $fileName);
+        
+            // 🔹 ডাটাবেজে path রাখতে চাইলে
+            $path = 'admin_orders/' . $fileName;
+            
+            
 
             // 📝 Order Update
             $order->update([
@@ -332,6 +337,200 @@ class AdminController extends Controller
     {
         return view('admin.services_list');
     }
+
+    public function servicesList()
+    {
+        return response()->json(Service::latest()->get());
+    }
+
+    public function serviceUpdateRate(Request $request)
+    {
+        $service = Service::findOrFail($request->id);
+        $service->rate = $request->rate;
+        $service->save();
+
+        return response()->json(['success'=>true]);
+    }
+
+    public function serviceStore(Request $request)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'rate'        => 'required|numeric|min:0',
+            'status'      => 'required|in:active,inactive',
+        ]);
+
+        Service::create([
+            'name'=>$request->name,
+            'description'=>$request->description,
+            'rate'=>$request->rate,
+            'status'=>$request->status
+        ]);
+
+        return response()->json(['success'=>true]);
+    }
+
+    public function serviceToggleStatus(Request $request)
+    {
+        $service = Service::findOrFail($request->id);
+
+        $service->status = $service->status === 'active' ? 'inactive' : 'active';
+        $service->save();
+
+        return response()->json([
+            'success'=>true,
+            'status'=>$service->status
+        ]);
+    }
+
+    public function list()
+    {
+        $users = User::latest()->get()->map(function($user){
+
+            $credit = UserBalanceAdd::where('user_id', $user->id)->sum('amount');
+            $debit  = UserBalanceCut::where('user_id', $user->id)->sum('amount');
+
+            $user->balance = $credit - $debit;
+
+            return $user;
+        });
+
+        return response()->json($users);
+    }
+
+    // Get single user details
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+
+        $credit = UserBalanceAdd::where('user_id', $id)->sum('amount');
+        $debit  = UserBalanceCut::where('user_id', $id)->sum('amount');
+
+        $user->balance = $credit - $debit;
+
+        return response()->json($user);
+    }
+
+    // Add balance
+    public function addBalance(Request $request)
+    {
+        $request->validate([
+            'user_id'=>'required|exists:users,id',
+            'amount'=>'required|numeric|min:1'
+        ]);
+
+        UserBalanceAdd::create([
+            'user_id'=>$request->user_id,
+            'amount'=>$request->amount,
+            'source'=>'admin', // optional
+            'note'=>'Added via admin panel'
+        ]);
+
+        $newBalance = UserBalanceAdd::where('user_id',$request->user_id)->sum('amount')
+                    - UserBalanceCut::where('user_id',$request->user_id)->sum('amount');
+
+        return response()->json(['new_balance'=>$newBalance]);
+    }
+
+    // Deduct balance
+    public function deductBalance(Request $request)
+    {
+        $request->validate([
+            'user_id'=>'required|exists:users,id',
+            'amount'=>'required|numeric|min:1'
+        ]);
+
+        UserBalanceCut::create([
+            'user_id'=>$request->user_id,
+            'amount'=>$request->amount,
+            'reason'=>'admin_deduction', // optional
+            'note'=>'Deducted via admin panel'
+        ]);
+
+        $newBalance = UserBalanceAdd::where('user_id',$request->user_id)->sum('amount')
+                    - UserBalanceCut::where('user_id',$request->user_id)->sum('amount');
+
+        return response()->json(['new_balance'=>$newBalance]);
+    }
+
+    // Change user password
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'user_id'=>'required|exists:users,id',
+            'new_password'=>'required|string|min:6'
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->password = Hash::make($request->new_password);
+        $user->show_password = $request->new_password;
+        $user->save();
+
+        return response()->json(['success'=>true]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    public function todayOrders()
+    {
+        return view('admin.today_orders');
+    }
+
+
+    public function todayOrdersList()
+    {
+        $today = Carbon::today();
+
+        $orders = UserServiceOrder::with('user')
+            ->whereDate('created_at', $today)
+            ->orderBy('created_at','asc')
+            ->get();
+
+        $data = $orders->map(function($order) {
+            $user = $order->user;
+
+            // সঠিক ব্যালেন্স হিসাব
+            // অর্ডারের আগে সব Add/Cut
+            $beforeBalance = UserBalanceAdd::where('user_id',$user->id)
+                                ->where('created_at','<',$order->created_at)
+                                ->sum('amount')
+                           - UserBalanceCut::where('user_id',$user->id)
+                                ->where('created_at','<',$order->created_at)
+                                ->sum('amount');
+
+            $afterBalance = $beforeBalance - $order->amount; // order amount deducted
+
+            return [
+                'id' => $order->id,
+                'user_name' => $user->name,
+                'user_phone' => $user->phone ?? 'N/A',
+                'order_amount' => $order->amount,
+                'before_balance' => $beforeBalance,
+                'after_balance' => $afterBalance,
+                'status' => $order->status,
+                'created_at' => $order->created_at->format('Y-m-d H:i'),
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+
+
+
+
+
+
 
 
 }

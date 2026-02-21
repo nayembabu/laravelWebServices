@@ -1,21 +1,7 @@
 <!-- $user = auth()->user();
 $userBalance = $user->balance();
 $orders = $user->serviceOrders;  -->
-
-
-
-      <nav id="sidebar">
-				<div class="custom-menu">
-					<button type="button" id="sidebarCollapse" class="btn btn-primary">
-	        </button>
-        </div>
-        @auth
-	  		<div class="img bg-wrap text-center py-4" style="background-image: url({{ asset('img/bg_1.jpg')}});">
-	  			<div class="user-logo">
-	  				<div class="img" style="background-image: url('{{ asset('img/user/' . rand(0,102) . '.png') }}');"></div>
-	  				<h3>{{ auth()->user()->name }}</h3>
-	  			</div>
-	  		</div>
+{{--
         <ul class="list-unstyled components mb-5">
           <li class="active">
             <a href="{{ route('user.dashboard') }}"><span class="fa fa-home mr-3"></span> Home</a>
@@ -37,5 +23,109 @@ $orders = $user->serviceOrders;  -->
           </li>
         </ul>
         @endauth
+ --}}
 
-    	</nav>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <img src="{{ asset('img/serlogo.png') }}" alt="S" height="60px" width="60px" srcset="">
+      </div>
+      <span class="sidebar-brand-text"> ServicesBazar</span>
+    </div>
+    <!-- Menu -->
+    <div class="sidebar-menu">
+      <div class="menu-label">প্রধান মেনু</div>
+      <ul class="list-unstyled">
+        <li class="menu-item">
+          <a href="{{ route('user.dashboard') }}" class="menu-link active" data-tooltip="ড্যাশবোর্ড">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span class="link-text">ড্যাশবোর্ড</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ route('user.sign_nid') }}" class="menu-link" data-tooltip="অ্যানালিটিক্স">
+            <i class="bi bi-person-vcard"></i>
+            <span class="link-text">সাইন টু এনআইডি</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="ব্যবহারকারী">
+            <i class="bi bi-person-badge-fill"></i>
+            <span class="link-text">সাইন টু সার্ভার</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="প্রজেক্ট">
+            <i class="bi bi-credit-card-2-front-fill"></i>
+            <span class="link-text">জন্ম নিবন্ধন মেইক</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ route('user.services') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+            <i class="bi bi-card-text"></i>
+            <span class="link-text">সকল অর্ডার</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ route('user.downloads') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+            <i class="bi bi-download"></i>
+            <span class="link-text">ডাউনলোড অর্ডার</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ route('user.download_make') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+            <i class="bi bi-download"></i>
+            <span class="link-text">ডাউনলোড মেক</span>
+          </a>
+        </li>
+      </ul>
+      <div class="menu-label mt-3">যোগাযোগ</div>
+      <ul class="list-unstyled">
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="মেসেজ">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span class="link-text">মেসেজ</span>
+            <span class="menu-badge">৫</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="নোটিফিকেশন">
+            <i class="bi bi-bell-fill"></i>
+            <span class="link-text">নোটিফিকেশন</span>
+            <span class="menu-badge">১২</span>
+          </a>
+        </li>
+      </ul>
+      <div class="menu-label mt-3">সিস্টেম</div>
+      <ul class="list-unstyled">
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="সেটিংস">
+            <i class="bi bi-gear-fill"></i>
+            <span class="link-text">সেটিংস</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ route('logout') }}" class="menu-link text-danger-hover" data-tooltip="লগ আউট">
+            <i class="bi bi-box-arrow-left"></i>
+            <span class="link-text">লগ আউট</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <a href="{{ route('user.profile') }}" class="sidebar-user text-decoration-none" >
+        <div class="user-avatar"><img src="{{ asset('img/user/' . rand(0,102) . '.png') }}" height="40px" width="40px"  alt="U"></div>
+        <div class="user-info">
+          <div class="user-name">{{auth()->user()->name;}}</div>
+          <div class="user-role">{{auth()->user()->referral_code;}}</div>
+        </div>
+      </a>
+    </div>
+  </nav>
+

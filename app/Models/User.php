@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(UserBalanceAdd::class, 'user_id');
     }
 
+    public function voter()
+    {
+        return $this->hasMany(Voter::class, 'user_id');
+    }
+
     public function balanceCuts()
     {
         return $this->hasMany(UserBalanceCut::class, 'user_id');

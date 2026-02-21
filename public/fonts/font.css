@@ -1,0 +1,21 @@
+@font-face {
+  font-family: 'Bangla';
+  src: url('fonts/bangla/Bangla.eot');
+  src: url('fonts/bangla/Bangla.woff') format('woff'),
+       url('fonts/bangla/Bangla.ttf') format('truetype'),
+       url('fonts/bangla/Bangla.svg#Bangla') format('svg'),
+       url('fonts/bangla/Bangla.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  src: url('fonts/bangla/SolaimanLipi.eot');
+  src: url('fonts/bangla/SolaimanLipi.woff') format('woff'),
+       url('fonts/bangla/SolaimanLipi.ttf') format('truetype'),
+       url('fonts/bangla/SolaimanLipi.svg#SolaimanLipiNormal') format('svg'),
+       url('fonts/bangla/SolaimanLipi.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}

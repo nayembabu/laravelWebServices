@@ -26,10 +26,10 @@
                     <a class="nav-link admin-nav-link" href="{{ route('admin.deposit') }}"><i class="bi bi-wallet2 me-2"></i>ডিপোজিট</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-graph-up me-2"></i>রিপোর্ট & অ্যানালিটিক্স</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.services.list') }}"><i class="bi bi-graph-up me-2"></i>সার্ভিস</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link admin-nav-link" href="#"><i class="bi bi-gear me-2"></i>সেটিংস</a>
+                    <a class="nav-link admin-nav-link" href="{{ route('admin.today_orders') }}"><i class="bi bi-gear me-2"></i>আজকের অর্ডার</a>
                 </li>
             </ul>
 

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 use App\Models\Service;
 use App\Models\UserServiceOrder;
@@ -15,6 +17,8 @@ use App\Models\UserBalanceAdd;
 use App\Models\UserBalanceCut;
 use App\Models\PaymentMethod;
 use App\Models\UserRecharge;
+use App\Models\SaveRowJsonData;
+use App\Models\Voter;
 
 class UserController extends Controller
 {
@@ -95,6 +99,16 @@ class UserController extends Controller
 
         return view('user.download_view_file', compact('orders'));
     }
+
+    public function download_make_file()
+    {
+        $make = Voter::where('user_id', Auth::id())
+                    ->latest()
+                    ->get();
+
+        return view('user.download_make_view_file', compact('make'));
+    }
+
 
     public function ordersAjax(Request $request)
     {
@@ -254,6 +268,289 @@ class UserController extends Controller
         return back()->with('success', 'প্রোফাইল সফলভাবে আপডেট হয়েছে ✅');
     }
 
+    public function signtonid()
+    {
+        return view('user.sign2nid');
+    }
+
+    public function signtonid_api_fetch(Request $request)
+    {
+        // প্রথমে এই user এর ব্যালেন্স চেক করো।
+        $userId = auth()->id();
+        $currentBalance = auth()->user()->balance();
+
+        // services টেবিলের 18 নং রো এর rate বের করো
+        $service18 = Service::find(18);
+        $requiredRate = $service18 ? $service18->rate : null;
+
+        // ব্যালেন্স চেক করো
+        if (!$requiredRate || $currentBalance < $requiredRate) {
+            return response()->json(['error' => 'আপনার ব্যালেন্স পর্যাপ্ত নয়।']);
+        }
+
+        try {
+            // Validate the uploaded file
+            $request->validate([
+                'pdf' => 'required|file|mimes:pdf|max:20480', // 20MB max
+            ]);
+
+            if (!$request->hasFile('pdf')) {
+                return response()->json(['error' => 'No PDF file found in request'], 400);
+            }
+
+            $pdf = $request->file('pdf');
+
+            // Prepare file for sending with Guzzle
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://rampur-server.xyz/api_proxy_one.php', [
+                'multipart' => [
+                    [
+                        'name'     => 'pdf',
+                        'contents' => fopen($pdf->getPathname(), 'r'),
+                        'filename' => $pdf->getClientOriginalName(),
+                    ],
+                ],
+                // Optionally you can add headers or timeout
+            ]);
+
+            $body = $response->getBody()->getContents();
+
+            $json = json_decode($body, true);
+            $data = $json['data'];
+
+
+            SaveRowJsonData::create([
+                'row_data' => $json, // পুরো JSON ডাটা
+                'nid'      => isset($data['nid']) ? $data['nid'] : null,
+                'pin'      => isset($data['pin']) ? $data['pin'] : null,
+                'dob'      => isset($data['dateOfBirth']) ? $data['dateOfBirth'] : null,
+            ]);
+
+            UserBalanceCut::create([
+                'user_id' => $userId,
+                'amount'  => $service18->rate,
+                'reason'  => 'Make Sign 2 NID',
+                'note'    => 'Service Sign 2 NID',
+            ]);
+
+            // images একটা array আকারে আছে, এটাকে ভেঙ্গে দুইটা ভ্যারিয়েবলে দিয়ে দাও
+            $image1 = isset($json['images'][0]) ? $json['images'][0] : null;
+            $image2 = isset($json['images'][1]) ? $json['images'][1] : null;
+
+            $photoPath = $this->saveBase64ToPublic($image1, 'photo');
+            $signPath  = $this->saveBase64ToPublic($image2, 'sign');
+
+            $nid              = isset($data['nid']) ? $data['nid'] : null;
+            $pin              = isset($data['pin']) ? $data['pin'] : null;
+            $formNo           = isset($data['formNo']) ? $data['formNo'] : null;
+            $sl_no            = isset($data['sl_no']) ? $data['sl_no'] : null;
+            $father_nid       = isset($data['father_nid']) ? $data['father_nid'] : null;
+            $mother_nid       = isset($data['mother_nid']) ? $data['mother_nid'] : null;
+            $religion         = isset($data['religion']) ? $data['religion'] : null;
+            $mobile           = isset($data['mobile']) ? $data['mobile'] : null;
+            $voterNo          = isset($data['voterNo']) ? $data['voterNo'] : null;
+            $voterArea        = isset($data['voterArea']) ? $data['voterArea'] : null;
+            $education        = isset($data['education']) ? $data['education'] : null;
+            $occupation       = isset($data['occupation']) ? $data['occupation'] : null;
+            $status           = isset($data['status']) ? $data['status'] : null;
+            $nameBangla       = isset($data['nameBangla']) ? $data['nameBangla'] : null;
+            $nameEnglish      = isset($data['nameEnglish']) ? $data['nameEnglish'] : null;
+            $dateOfBirth      = isset($data['dateOfBirth']) ? $data['dateOfBirth'] : null;
+            $birthPlace       = isset($data['birthPlace']) ? $data['birthPlace'] : null;
+            $fatherName       = isset($data['fatherName']) ? $data['fatherName'] : null;
+            $motherName       = isset($data['motherName']) ? $data['motherName'] : null;
+            $spouseName       = isset($data['spouseName']) ? $data['spouseName'] : null;
+            $gender           = isset($data['gender']) ? $data['gender'] : null;
+            $bloodGroup       = isset($data['bloodGroup']) ? $data['bloodGroup'] : null;
+            $presentAddress   = isset($data['presentAddress']) ? $data['presentAddress'] : null;
+            $permanentAddress = isset($data['permanentAddress']) ? $data['permanentAddress'] : null;
+            $address          = isset($data['address']) ? $data['address'] : null;
+
+            $voter = Voter::create([
+                'nid'               => $nid,
+                'pin'               => $pin,
+                'user_id'           => Auth::id(),
+                'formNo'            => $formNo,
+                'sl_no'             => $sl_no,
+                'father_nid'        => $father_nid,
+                'mother_nid'        => $mother_nid,
+                'religion'          => $religion,
+                'mobile'            => $mobile,
+                'voterNo'           => $voterNo,
+                'voterArea'         => $voterArea,
+                'education'         => $education,
+                'occupation'        => $occupation,
+                'status'            => $status,
+                'nameBangla'        => $nameBangla,
+                'nameEnglish'       => $nameEnglish,
+                'dateOfBirth'       => $dateOfBirth,
+                'birthPlace'        => $birthPlace,
+                'fatherName'        => $fatherName,
+                'motherName'        => $motherName,
+                'spouseName'        => $spouseName,
+                'gender'            => $gender,
+                'bloodGroup'        => $bloodGroup,
+                'presentAddress'    => $presentAddress,
+                'permanentAddress'  => $permanentAddress,
+                'address'           => $address,
+                'image_photo'       => $photoPath,
+                'image_sign'        => $signPath,
+                'issueDate'         => date('Y-m-d', time()),
+            ]);
+
+            // একসাথে সব ভ্যরিয়েবল রেসপন্সে পাঠানো হচ্ছে
+            $responseData = [
+                'nid'              => $nid,
+                'pin'              => $pin,
+                'formNo'           => $formNo,
+                'sl_no'            => $sl_no,
+                'father_nid'       => $father_nid,
+                'mother_nid'       => $mother_nid,
+                'religion'         => $religion,
+                'mobile'           => $mobile,
+                'voterNo'          => $voterNo,
+                'voterArea'        => $voterArea,
+                'education'        => $education,
+                'occupation'       => $occupation,
+                'status'           => $status,
+                'nameBangla'       => $nameBangla,
+                'nameEnglish'      => $nameEnglish,
+                'dateOfBirth'      => $dateOfBirth,
+                'birthPlace'       => $birthPlace,
+                'fatherName'       => $fatherName,
+                'motherName'       => $motherName,
+                'spouseName'       => $spouseName,
+                'gender'           => $gender,
+                'bloodGroup'       => $bloodGroup,
+                'presentAddress'   => $presentAddress,
+                'permanentAddress' => $permanentAddress,
+                'address'          => $address,
+                'image1'           => $image1,
+                'image2'           => $image2,
+                'issueDate'        => date('d-m-Y', time()),
+                'voterid'          => $voter->id
+            ];
+
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'error' => 'API returned invalid JSON',
+                    'body' => $data,
+                ], 500);
+            }
+
+            return response()->json($responseData);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->getMessage(), 'messages' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function nid_data_save_and_download(Request $request)
+    {
+        // Input validation
+        $data = $request->validate([
+            'voter_id'      => 'required|integer|exists:voters,id',
+            'userPhotoLeft' => 'nullable|string',
+            'userSignRight' => 'nullable|string',
+            'nidID'         => 'nullable|string',
+            'nidPin'        => 'nullable|string',
+            'nameBangla'    => 'nullable|string',
+            'nameEnglish'   => 'nullable|string',
+            'fatherName'    => 'nullable|string',
+            'dob'           => 'nullable|string',
+            'birthPlace'    => 'nullable|string',
+            'gender'        => 'nullable|string',
+            'issueDate'     => 'nullable|string',
+            'fullAddress'   => 'nullable|string',
+        ]);
+
+        // Get voter by voter_id (id)
+        $voter = Voter::findOrFail($data['voter_id']);
+        $update = [];
+
+        // Handle images if uploaded as files from the form
+        if ($request->hasFile('userPhotoLeft') && $request->file('userPhotoLeft')->isValid()) {
+            $photoFile = $request->file('userPhotoLeft');
+            $photoName = 'photo_' . now()->format('Ymd_His') . '_' . Str::random(6) . '.' . $photoFile->getClientOriginalExtension();
+            $destinationPath = public_path('img_uploads');
+            if (!\File::exists($destinationPath)) {
+                \File::makeDirectory($destinationPath, 0755, true);
+            }
+            $photoFile->move($destinationPath, $photoName);
+            $update['image_photo'] = 'img_uploads/' . $photoName;
+        }
+
+        if ($request->hasFile('userSignRight') && $request->file('userSignRight')->isValid()) {
+            $signFile = $request->file('userSignRight');
+            $signName = 'sign_' . now()->format('Ymd_His') . '_' . Str::random(6) . '.' . $signFile->getClientOriginalExtension();
+            $destinationPath = public_path('img_uploads');
+            if (!\File::exists($destinationPath)) {
+                \File::makeDirectory($destinationPath, 0755, true);
+            }
+            $signFile->move($destinationPath, $signName);
+            $update['image_sign'] = 'img_uploads/' . $signName;
+        }
+
+
+        // Always update these fields (sync)
+        $syncFields = [
+            'nid'            => $data['nidID'] ?? $voter->nid,
+            'pin'            => $data['nidPin'] ?? $voter->pin,
+            'nameBangla'     => $data['nameBangla'] ?? $voter->nameBangla,
+            'nameEnglish'    => $data['nameEnglish'] ?? $voter->nameEnglish,
+            'fatherName'     => $data['fatherName'] ?? $voter->fatherName,
+            'dateOfBirth'    => $data['dob'] ?? $voter->dateOfBirth,
+            'birthPlace'     => $data['birthPlace'] ?? $voter->birthPlace,
+            'gender'         => $data['gender'] ?? $voter->gender,
+            'issueDate'      => $data['issueDate'] ?? $voter->issueDate,
+            'address'        => $data['fullAddress'] ?? $voter->address,
+        ];
+        $update = array_merge($update, $syncFields);
+
+        // Update Voter
+        $voter->update($update);
+
+        // If any image is uploaded, respond with success
+        if (isset($update['image_photo']) || isset($update['image_sign'])) {
+            return response()->json(['success' => 'Voter synced and images uploaded', 'voter_id' => $voter->id]);
+        }
+
+        return redirect()->back()->with([
+            'download_link' => route('user.downloadsnid', ['voter_id' => $voter->id]),
+            'success' => 'NID তৈরী হয়েছে!'
+        ]);
+
+    }
+
+    private function saveBase64ToPublic(?string $base64, string $prefix = 'img'): ?string
+    {
+        if (empty($base64)) return null;
+
+        // যদি data:image/png;base64,... থাকে
+        if (str_contains($base64, 'base64,')) {
+            $base64 = explode('base64,', $base64, 2)[1];
+        }
+
+        $binary = base64_decode($base64);
+        if ($binary === false) return null;
+
+        $uploadPath = public_path('img_uploads');
+
+        if (!File::exists($uploadPath)) {
+            File::makeDirectory($uploadPath, 0755, true);
+        }
+
+        $fileName = $prefix.'_'.now()->format('Ymd_His').'_'.Str::random(6).'.png';
+        $filePath = $uploadPath.'/'.$fileName;
+
+        file_put_contents($filePath, $binary);
+
+        // DB তে relative path রাখবো
+        return 'img_uploads/'.$fileName;
+    }
 
 
 }
