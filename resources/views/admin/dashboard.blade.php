@@ -24,11 +24,70 @@
             color: #6c757d;
         }
     </style>
+    <style>
+        .card {
+            border-radius: 12px;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            transition: 0.3s ease;
+        }
+    </style>
 @endpush
 
 @section('content')
 
-        <h2 class="mb-4 fw-bold">অ্যাডমিন ড্যাশবোর্ড ওভারভিউ </h2>
+        <h2 class="mb-4 fw-bold">অ্যাডমিন ড্যাশবোর্ড ওভারভিউ  </h2>
+
+        <div class="container mt-4">
+            <div class="row g-4">
+
+                <!-- Server Copy Token Card -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-2">সার্ভার কপির টোকেন</h6>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="fw-bold text-primary mb-0 tocken_assign "></h4>
+
+                                <button class="btn btn-sm btn-outline-primary" id="refreshToken">
+                                    🔄 রিফ্রেশ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today Recharge Card -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-2">আজকের মোট রিচার্জ</h6>
+
+                            <h4 class="fw-bold text-success mb-0">
+                                ৳ {{ number_format($totalRechargeAmount ?? 0, 2) }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Orders Card -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-2">মোট অর্ডার</h6>
+
+                            <h4 class="fw-bold text-dark mb-0">
+                                {{ $todayOrders ?? 0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <form action="{{ route('admin.setting.toggle.service') }}" method="POST">
             @csrf
             @php
@@ -100,6 +159,32 @@
 @endsection
 
 @push('scripts')
+
+<script>function getTokenByApi() {
+    $('.tocken_assign').text('Loading...');
+
+    $.get("{{ route('servercopy.token') }}", function(res){
+        if(res.ok){
+            $('.tocken_assign').text(res.balance);
+        }else{
+            $('.tocken_assign').text('0');
+            alert(res.message || 'Failed');
+        }
+    }).fail(function(){
+        $('.tocken_assign').text('Error');
+        alert('Server error');
+    });
+}
+
+$('#refreshToken').click(function(){
+    getTokenByApi();
+});
+
+// page load এ auto load চাইলে
+$(document).ready(function(){
+    getTokenByApi();
+});
+</script>
 
 @endpush
 

@@ -41,6 +41,7 @@ class Voter extends Model
         'image_sign',
         'issueDate',
         'user_id',
+        'file_types',
     ];
 
     protected $casts = [

@@ -17,6 +17,9 @@ use App\Models\UserBalanceAdd;
 use App\Models\UserBalanceCut;
 use App\Models\PaymentMethod;
 use App\Models\UserRecharge;
+use App\Models\Order;
+use App\Models\Payment;
+
 
 class AdminController extends Controller
 {
@@ -48,13 +51,17 @@ class AdminController extends Controller
         $totalUsers = User::count();
 
         $totalOrders = UserServiceOrder::count();
+        $todayOrders = UserServiceOrder::whereDate('created_at', Carbon::today())->count();
 
+        $totalRechargeAmount = Order::where('status', 'paid')
+                            ->whereDate('created_at', Carbon::today())
+                            ->sum('amount');
         $pendingDeposits = UserRecharge::where('status', 'pending')
                                         ->whereNull('approved_at')
                                         ->count();
 
         $pendingOrders = UserServiceOrder::where('status', 'pending')->count();
-        return view('admin.dashboard', compact('totalUsers', 'totalOrders', 'pendingDeposits', 'pendingOrders'));
+        return view('admin.dashboard', compact('totalUsers', 'totalOrders', 'pendingDeposits', 'pendingOrders', 'totalRechargeAmount', 'todayOrders'));
     }
 
     public function all_waiting_orders()
@@ -153,14 +160,14 @@ class AdminController extends Controller
 
             // 🔹 public/storage/admin_orders এ সরাসরি আপলোড
             $destinationPath = public_path('storage/admin_orders');
-        
+
             // ফাইল move করা
             $file->move($destinationPath, $fileName);
-        
+
             // 🔹 ডাটাবেজে path রাখতে চাইলে
             $path = 'admin_orders/' . $fileName;
-            
-            
+
+
 
             // 📝 Order Update
             $order->update([

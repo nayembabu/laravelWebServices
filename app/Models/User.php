@@ -69,6 +69,16 @@ class User extends Authenticatable
         return $this->hasMany(UserRecharge::class, 'user_id');
     }
 
+    public function order()
+    {
+        return $this->hasMany(Order::class, 'user_id');
+    }
+
+    public function payment()
+    {
+        return $this->hasMany(Payment::class, 'user_id');
+    }
+
     // 🔹 ইউজারের মোট ব্যালেন্স হিসাব
     public function balance()
     {

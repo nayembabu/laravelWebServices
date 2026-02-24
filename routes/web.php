@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\BkashPaymentController;
 
 
 Route::get('/', function () {
@@ -70,22 +71,35 @@ Route::middleware(['auth'])->group(function () {
     Route::post('sign2nid', [UserController::class, 'signtonid_api_fetch'])->name('user.ni2sign');
     Route::post('nid_data_save_download', [UserController::class, 'nid_data_save_and_download'])->name('user.nidSaveData');
 
-    Route::get('don', [DownloadController::class, 'generatePdf'])->name('user.sign_nid');
+    Route::get('auto_server_data_get', [UserController::class, 'auto_server_copy_data_get'])->name('user.getserverdata');
+    Route::get('auto_server', [UserController::class, 'auto_server_copy'])->name('user.server');
+    Route::post('auto_serv', [UserController::class, 'auto_server_copy_api'])->name('user.serverap');
 
+
+
+    Route::get('don', [DownloadController::class, 'generatePdf'])->name('user.sign_nid');
     Route::get('pdf-download', [DownloadController::class, 'download']);
 
 
 
 
     Route::get('downloadnid/{voter_id}', [DownloadController::class, 'download_nid_copy'])->name('user.downloadsnid');
+    Route::get('downloadserver', [DownloadController::class, 'serverAction'])->name('voter.action');
 
 
 
 
 
 
+    Route::get('/pay', [BkashPaymentController::class, 'showForm'])->name('pay.form');
+    Route::post('/pay', [BkashPaymentController::class, 'startPayment'])->name('pay.start');
 
+    Route::get('/bkash/callback', [BkashPaymentController::class, 'callback'])->name('bkash.callback');
 
+    Route::get('/payment/success/{invoice}', [BkashPaymentController::class, 'success'])->name('pay.success');
+    Route::get('/payment/failed/{invoice}', [BkashPaymentController::class, 'failed'])->name('pay.failed');
+
+    Route::get('/servercopy/token', [UserController::class, 'servercopyToken'])->name('servercopy.token');
 
 });
 

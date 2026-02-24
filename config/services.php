@@ -39,4 +39,11 @@ return [
         ],
     ],
 
+    // Server Copy Api 
+    'nid_api' => [
+        'url' => env('NID_API_URL'),
+        'token' => env('NID_API_TOKEN'),
+        'fee' => (float) env('NID_SEARCH_FEE', 5),
+    ],
+
 ];

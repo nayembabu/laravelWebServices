@@ -1,3 +1,9 @@
+@php
+$serviceRates = \App\Models\Service::whereIn('id', [18,19,20,22,23])
+    ->pluck('rate', 'id')
+    ->toArray();
+@endphp
+
 <!-- $user = auth()->user();
 $userBalance = $user->balance();
 $orders = $user->serviceOrders;  -->
@@ -42,65 +48,82 @@ $orders = $user->serviceOrders;  -->
       <div class="menu-label">প্রধান মেনু</div>
       <ul class="list-unstyled">
         <li class="menu-item">
-          <a href="{{ route('user.dashboard') }}" class="menu-link active" data-tooltip="ড্যাশবোর্ড">
+          <a href="{{ route('user.dashboard') }}" class="menu-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}" data-tooltip="ড্যাশবোর্ড">
             <i class="bi bi-grid-1x2-fill"></i>
             <span class="link-text">ড্যাশবোর্ড</span>
           </a>
         </li>
         <li class="menu-item">
-          <a href="{{ route('user.sign_nid') }}" class="menu-link" data-tooltip="অ্যানালিটিক্স">
+          <a href="{{ route('user.sign_nid') }}" class="menu-link {{ request()->routeIs('user.sign_nid') ? 'active' : '' }}" data-tooltip="অ্যানালিটিক্স">
             <i class="bi bi-person-vcard"></i>
-            <span class="link-text">সাইন টু এনআইডি</span>
+            <span class="link-text">সাইন টু এনআইডি <span class="bg-dark p-1 rounded">{{ $serviceRates[18] ?? 0 }}/-</span> </span>
           </a>
         </li>
         <li class="menu-item">
+          <a href="{{ route('user.server') }}" class="menu-link {{ request()->routeIs('user.server') ? 'active' : '' }}" data-tooltip="ব্যবহারকারী">
+            <i class="bi bi-person-badge-fill"></i>
+            <span class="link-text">সার্ভার কপি <span class="bg-dark p-1 rounded">{{ $serviceRates[23] ?? 0 }}/-</span> </span>
+          </a>
+        </li>
+
+
+
+
+
+{{--
+        <li class="menu-item">
           <a href="#" class="menu-link" data-tooltip="ব্যবহারকারী">
             <i class="bi bi-person-badge-fill"></i>
-            <span class="link-text">সাইন টু সার্ভার</span>
+            <span class="link-text">ই-টিন মেক <span class="bg-dark p-1 rounded">{{ $serviceRates[22] ?? 0 }}/-</span> </span>
+          </a>
+        </li>
+--}}
+
+
+
+
+
+
+{{--
+        <li class="menu-item">
+          <a href="#" class="menu-link" data-tooltip="ব্যবহারকারী">
+            <i class="bi bi-person-badge-fill"></i>
+            <span class="link-text">সাইন টু সার্ভার <span class="bg-dark p-1 rounded">{{ $serviceRates[19] ?? 0 }}/-</span> </span>
           </a>
         </li>
         <li class="menu-item">
           <a href="#" class="menu-link" data-tooltip="প্রজেক্ট">
             <i class="bi bi-credit-card-2-front-fill"></i>
-            <span class="link-text">জন্ম নিবন্ধন মেইক</span>
+            <span class="link-text">জন্ম নিবন্ধন মেইক <span class="bg-dark p-1 rounded">{{ $serviceRates[20] ?? 0 }}/-</span> </span>
           </a>
-        </li>
+        </li> --}}
         <li class="menu-item">
-          <a href="{{ route('user.services') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+          <a href="{{ route('user.services') }}" class="menu-link {{ request()->routeIs('user.services') ? 'active' : '' }}" data-tooltip="ক্যালেন্ডার">
             <i class="bi bi-card-text"></i>
             <span class="link-text">সকল অর্ডার</span>
           </a>
         </li>
         <li class="menu-item">
-          <a href="{{ route('user.downloads') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+          <a href="{{ route('user.downloads') }}" class="menu-link {{ request()->routeIs('user.downloads') ? 'active' : '' }}" data-tooltip="ক্যালেন্ডার">
             <i class="bi bi-download"></i>
             <span class="link-text">ডাউনলোড অর্ডার</span>
           </a>
         </li>
         <li class="menu-item">
-          <a href="{{ route('user.download_make') }}" class="menu-link" data-tooltip="ক্যালেন্ডার">
+          <a href="{{ route('user.download_make') }}" class="menu-link {{ request()->routeIs('user.download_make') ? 'active' : '' }}" data-tooltip="ক্যালেন্ডার">
             <i class="bi bi-download"></i>
             <span class="link-text">ডাউনলোড মেক</span>
           </a>
         </li>
-      </ul>
-      <div class="menu-label mt-3">যোগাযোগ</div>
-      <ul class="list-unstyled">
         <li class="menu-item">
-          <a href="#" class="menu-link" data-tooltip="মেসেজ">
-            <i class="bi bi-chat-dots-fill"></i>
-            <span class="link-text">মেসেজ</span>
-            <span class="menu-badge">৫</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="#" class="menu-link" data-tooltip="নোটিফিকেশন">
-            <i class="bi bi-bell-fill"></i>
-            <span class="link-text">নোটিফিকেশন</span>
-            <span class="menu-badge">১২</span>
+          <a href="{{ route('pay.form') }}" class="menu-link {{ request()->routeIs('pay.form') ? 'active' : '' }}" data-tooltip="ক্যালেন্ডার">
+            <i class="fa fa-dollar"></i>
+            <span class="link-text">রিচার্জ</span>
           </a>
         </li>
       </ul>
+
+
       <div class="menu-label mt-3">সিস্টেম</div>
       <ul class="list-unstyled">
         <li class="menu-item">

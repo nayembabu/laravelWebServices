@@ -24,6 +24,7 @@ use App\Services\PdfService;
 use BigFish\PDF417\PDF417;
 use BigFish\PDF417\Renderers\ImageRenderer;
 use BigFish\PDF417\Renderers\SvgRenderer;
+use TCPDF2DBarcode;
 
 class DownloadController extends Controller
 {
@@ -104,11 +105,52 @@ class DownloadController extends Controller
         return $pdf->makeFromHtml($html, 'invoice.pdf', 'I');
     }
 
-
-
     public function generatePdf() {
         $data = ['title' => 'My PDF'];
         $pdf = Pdf::loadView('download.invoice', $data);
         return $pdf->download('invoice.pdf');
     }
+
+    public function serverAction(Request $request, PdfService $pdf)
+    {
+        $id   = $request->id;
+        $type = $request->type;
+
+        // চাইলে আগে ডাটা বের করতে পারেন
+        $voter = Voter::findOrFail($id);
+
+        if ($type == '1') {
+            $html = view('download.new_online_copy', [
+                'services_infos' => $voter,
+            ])->render();
+        }
+
+        if ($type == '2') {
+            $html = view('download.server_copy_one_capture', [
+                'services_infos' => $voter,
+            ])->render();
+        }
+
+        if ($type == '3') {
+
+			// barcode Content
+			$string_for_barcode = $voter->nid ?? $voter->pin."  ".$voter->nameEnglish." ".date('Y-m-d', strtotime($voter->dateOfBirth));
+			// barcode Content
+
+			$barcodeobj = new \TCPDF2DBarcode($string_for_barcode, 'QRCODE,H');
+			// output the barcode as PNG image
+			$qrBinary = $barcodeobj->getBarcodePngData(4, 4, [0, 0, 0]);
+            $pdf417_barcode = base64_encode($qrBinary);
+
+            $html = view('download.server_copy_one_man', [
+                'pdf417_barcode' => $pdf417_barcode,
+                'services_infos' => $voter,
+            ])->render();
+        }
+
+        return $pdf->makeFromHtml($html, 'server-'.$voter->nameEnglish.'.pdf', 'D');
+    }
+
+
+
 }

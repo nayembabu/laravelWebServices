@@ -16,7 +16,7 @@
         <p class="text-muted mt-1 mb-0">ড্যাশবোর্ড সারসংক্ষেপ</p>
       </div>
       <!-- Stats -->
-      <div class="row g-3 mb-4">
+      {{-- <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
           <div class="stat-card">
             <div class="d-flex align-items-center justify-content-between">
@@ -57,33 +57,21 @@
             <div class="stat-label">গ্রোথ রেট</div>
           </div>
         </div>
-      </div>
+      </div> --}}
       <!-- Activity + Quick Access -->
       <div class="row g-3">
         <div class="col-lg-8">
           <div class="activity-card">
-            <h5 class="fw-semibold mb-4">সাম্প্রতিক কার্যকলাপ</h5>
+            <h5 class="fw-semibold mb-4">সকল সার্ভিস এবং রেট</h5>
             <div class="d-flex flex-column gap-3">
-              <div class="d-flex align-items-center gap-3">
-                <div class="activity-dot primary"></div>
-                <span class="flex-grow-1" style="font-size:14px;">নতুন ব্যবহারকারী যোগ হয়েছে</span>
-                <small class="text-muted">২ মিনিট আগে</small>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <div class="activity-dot accent"></div>
-                <span class="flex-grow-1" style="font-size:14px;">প্রজেক্ট আপডেট সম্পন্ন</span>
-                <small class="text-muted">১৫ মিনিট আগে</small>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <div class="activity-dot primary"></div>
-                <span class="flex-grow-1" style="font-size:14px;">পেমেন্ট গ্রহণ করা হয়েছে</span>
-                <small class="text-muted">১ ঘন্টা আগে</small>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <div class="activity-dot accent"></div>
-                <span class="flex-grow-1" style="font-size:14px;">নতুন রিপোর্ট তৈরি হয়েছে</span>
-                <small class="text-muted">৩ ঘন্টা আগে</small>
-              </div>
+                @foreach ($services as $ser)
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="activity-dot primary"></div>
+                        <span class="flex-grow-1" style="font-size:14px;">{{ $ser->name; }}</span>
+                        <small class="text-muted">৳ {{ $ser->rate; }}/-</small>
+                    </div>
+                @endforeach
+
             </div>
           </div>
         </div>

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\Service;
 use App\Models\UserServiceOrder;
@@ -19,21 +21,23 @@ use App\Models\PaymentMethod;
 use App\Models\UserRecharge;
 use App\Models\SaveRowJsonData;
 use App\Models\Voter;
+use App\Models\User;
 
 class UserController extends Controller
 {
     public function dashboard()
     {
+        $services = Service::all();
         $lastOrders = auth()->user()->serviceOrders()
                                     ->orderBy('created_at', 'desc')
                                     ->take(10)
                                     ->get();
-        return view('user.dashboard', compact('lastOrders'));
+        return view('user.dashboard', compact('lastOrders', 'services'));
     }
 
     public function view_all_services()
     {
-        $services = Service::all();
+        $services = Service::where('order_not', 1)->get();
         $querys = UserServiceOrder::with('service')->where('user_id', Auth::id())->whereDate('created_at', Carbon::today())->orderBy('id', 'desc')->get();
         return view('user.services_page', compact('services', 'querys'));
     }
@@ -302,7 +306,7 @@ class UserController extends Controller
 
             // Prepare file for sending with Guzzle
             $client = new \GuzzleHttp\Client();
-            $response = $client->request('POST', 'https://rampur-server.xyz/api_proxy_one.php', [
+            $response = $client->request('POST', 'https://api.rampur-server.xyz/', [
                 'multipart' => [
                     [
                         'name'     => 'pdf',
@@ -321,7 +325,7 @@ class UserController extends Controller
 
             SaveRowJsonData::create([
                 'row_data' => $json, // পুরো JSON ডাটা
-                'nid'      => isset($data['nid']) ? $data['nid'] : null,
+                'nid'      => isset($data['nationalId']) ? $data['nationalId'] : null,
                 'pin'      => isset($data['pin']) ? $data['pin'] : null,
                 'dob'      => isset($data['dateOfBirth']) ? $data['dateOfBirth'] : null,
             ]);
@@ -334,13 +338,16 @@ class UserController extends Controller
             ]);
 
             // images একটা array আকারে আছে, এটাকে ভেঙ্গে দুইটা ভ্যারিয়েবলে দিয়ে দাও
-            $image1 = isset($json['images'][0]) ? $json['images'][0] : null;
-            $image2 = isset($json['images'][1]) ? $json['images'][1] : null;
+            $image1 = isset($data['userIMG']) ? $data['userIMG'] : null;
+            $image2 = isset($data['signIMG']) ? $data['signIMG'] : null;
 
-            $photoPath = $this->saveBase64ToPublic($image1, 'photo');
-            $signPath  = $this->saveBase64ToPublic($image2, 'sign');
+            // $photoPath = $this->saveBase64ToPublic($image1, 'photo');
+            // $signPath  = $this->saveBase64ToPublic($image2, 'sign');
 
-            $nid              = isset($data['nid']) ? $data['nid'] : null;
+            $photoPath = $this->savePhotoFromUrl($image1, 'photo');
+            $signPath  = $this->savePhotoFromUrl($image2, 'sign');
+
+            $nid              = isset($data['nationalId']) ? $data['nationalId'] : null;
             $pin              = isset($data['pin']) ? $data['pin'] : null;
             $formNo           = isset($data['formNo']) ? $data['formNo'] : null;
             $sl_no            = isset($data['sl_no']) ? $data['sl_no'] : null;
@@ -550,6 +557,369 @@ class UserController extends Controller
 
         // DB তে relative path রাখবো
         return 'img_uploads/'.$fileName;
+    }
+
+
+    public function savePhotoFromUrl($photoUrl, string $prefix = 'img')
+    {
+
+        if (!$photoUrl) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Photo URL is required'
+            ], 400);
+        }
+
+        try {
+
+            // Download image
+            $response = Http::timeout(60)->get($photoUrl);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Image download failed'
+                ], 500);
+            }
+
+            // Ensure folder exists
+            $uploadPath = public_path('img_uploads');
+
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            // Generate unique file name
+            $extension = pathinfo(parse_url($photoUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+            $extension = $extension ? $extension : 'jpg';
+
+            $fileName = $prefix.'_'.now()->format('Ymd_His').'_'.Str::random(20) . '.' . $extension;
+
+            // Save file
+            file_put_contents($uploadPath . '/' . $fileName, $response->body());
+
+
+            // DB তে relative path রাখবো
+            return 'img_uploads/'.$fileName;
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function auto_server_copy()
+    {
+        return view('user.auto_server');
+    }
+
+    public function auto_server_copy_api(Request $request)
+    {
+
+        $request->validate([
+            'nid' => ['required', 'string', 'max:30'],
+            'dob' => ['required', 'string', 'max:50'],
+        ]);
+
+        $inputNid = trim($request->nid);
+        $inputDob = trim($request->dob);
+
+        $rate = (float) Service::where('id', 23)->value('rate');
+
+        $currentBalance = auth()->user()->balance();
+
+        if ($rate <= 0) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'সমস্যা দেখাচ্ছে। ',
+                ], 422);
+            }
+        }
+
+        if ($currentBalance < (float) $rate) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => "পর্যাপ্ত ব্যালেন্স নেই। প্রয়োজন: {$rate} টাকা, আছে: {$currentBalance} টাকা",
+                ], 422);
+            }
+        }
+
+        $userId = Auth::id();
+
+        $oldVoter = Voter::where('nid', $inputNid)
+            ->whereDate('dateOfBirth', $inputDob)
+            ->latest()
+            ->first();
+
+        $source = null;
+        $payload = null;
+
+        // Voter insert fields
+        $nid = $inputNid;
+        $pin = null;
+        $formNo = $sl_no = $father_nid = $mother_nid = $mobile = $voterNo = $education = null;
+        $religion = $voterArea = $occupation = $status = null;
+        $nameBangla = $nameEnglish = $dateOfBirth = $birthPlace = $fatherName = $motherName = $spouseName = $gender = $bloodGroup = null;
+        $presentAddress = $permanentAddress = $address = null;
+        $photoPath = $signPath = null;
+
+        try {
+            if ($oldVoter) {
+                $source = 'db_cache';
+
+                $nid = $oldVoter->nid;
+                $pin = $oldVoter->pin;
+
+                $formNo = $oldVoter->formNo;
+                $sl_no = $oldVoter->sl_no;
+                $father_nid = $oldVoter->father_nid;
+                $mother_nid = $oldVoter->mother_nid;
+                $religion = $oldVoter->religion;
+                $mobile = $oldVoter->mobile;
+                $voterNo = $oldVoter->voterNo;
+                $voterArea = $oldVoter->voterArea;
+                $education = $oldVoter->education;
+                $occupation = $oldVoter->occupation;
+                $status = 'success';
+
+                $nameBangla = $oldVoter->nameBangla;
+                $nameEnglish = $oldVoter->nameEnglish;
+                $dateOfBirth = $oldVoter->dateOfBirth;
+                $birthPlace = $oldVoter->birthPlace;
+                $fatherName = $oldVoter->fatherName;
+                $motherName = $oldVoter->motherName;
+                $spouseName = $oldVoter->spouseName;
+                $gender = $oldVoter->gender;
+                $bloodGroup = $oldVoter->bloodGroup;
+
+                $presentAddress = $oldVoter->presentAddress;
+                $permanentAddress = $oldVoter->permanentAddress;
+                $address = $oldVoter->address;
+
+                $photoPath = $oldVoter->image_photo;
+                $signPath  = $oldVoter->image_sign;
+
+            } else {
+                $source = 'api';
+
+                $apiUrl = config('services.nid_api.url');
+                $token  = config('services.nid_api.token');
+
+                if (!$apiUrl) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'ok' => false,
+                            'message' => 'সমস্যা এডমিনের সাথে যোগাযোগ করুন ',
+                        ], 422);
+                    }
+                }
+
+                $http = Http::timeout(30)->acceptJson();
+
+                $res = $http->get($apiUrl, [
+                    'key' => $token,
+                    'nid' => $inputNid,
+                    'dob' => $inputDob,
+                ]);
+
+                if (!$res->successful()) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'ok' => false,
+                            'message' => 'সমস্যা হয়েছে আবারো চেষ্টা করুন। api  ',
+                        ], 422);
+                    }
+                }
+
+                $payload = $res->json();
+
+                $info = Arr::get($payload, 'data-Info', []);
+                if (empty($info)) {
+                    // error হলে (catch এর ভিতরে)
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'ok' => false,
+                            'message' => 'সমস্যা হয়েছে, আবার চেষ্টা করুন। data-Info ',
+                        ], 422);
+                    }
+                }
+
+                SaveRowJsonData::create([
+                    'row_data' => $res,
+                    'nid'      => isset($payload['data-Info']['nationalId']) ? $payload['data-Info']['nationalId'] : null,
+                    'pin'      => isset($payload['data-Info']['pin']) ? $payload['data-Info']['pin'] : null,
+                    'dob'      => isset($payload['data-Info']['dateOfBirth']) ? $payload['data-Info']['dateOfBirth'] : null,
+                ]);
+
+                // ✅ mapping
+                $nid = Arr::get($info, 'nationalId', $inputNid);
+                $pin = Arr::get($info, 'pin');
+
+                $religion   = Arr::get($info, 'religion');
+                $occupation = Arr::get($info, 'occupation');
+                $voterArea  = Arr::get($info, 'voterArea');
+                $status     = 'success';
+
+                $nameBangla  = Arr::get($info, 'nameBangla');
+                $nameEnglish = Arr::get($info, 'nameEnglish');
+                $dateOfBirth = Arr::get($info, 'dateOfBirth', $inputDob);
+                $birthPlace  = Arr::get($info, 'birthPlace');
+                $fatherName  = Arr::get($info, 'fatherName');
+                $motherName  = Arr::get($info, 'motherName');
+                $spouseName  = Arr::get($info, 'spouseName');
+                $gender      = Arr::get($info, 'gender');
+                $bloodGroup  = Arr::get($info, 'bloodGroup');
+
+                $presentAddress   = Arr::get($info, 'preAddress.addressLine');
+                $permanentAddress = Arr::get($info, 'perAddress.addressLine');
+                $address = $presentAddress ?: $permanentAddress;
+
+                $photoPath = Arr::get($info, 'photo');
+                $signPath  = null;
+            }
+
+            DB::transaction(function () use (
+                $userId, $rate,
+                $nid, $pin, $formNo, $sl_no, $father_nid, $mother_nid, $religion, $mobile, $voterNo,
+                $voterArea, $education, $occupation, $status, $nameBangla, $nameEnglish, $dateOfBirth,
+                $birthPlace, $fatherName, $motherName, $spouseName, $gender, $bloodGroup,
+                $presentAddress, $permanentAddress, $address, $photoPath, $signPath,
+                $payload, $source
+            ) {
+                User::where('id', $userId)->lockForUpdate()->firstOrFail();
+
+                $totalAdd = (float) UserBalanceAdd::where('user_id', $userId)->sum('amount');
+                $totalCut = (float) UserBalanceCut::where('user_id', $userId)->sum('amount');
+                $balance  = $totalAdd - $totalCut;
+
+                if ($balance < (float) $rate) {
+                    throw new \RuntimeException("পর্যাপ্ত ব্যালেন্স নেই। প্রয়োজন: {$rate} টাকা, আছে: {$balance} টাকা");
+                }
+
+                UserBalanceCut::create([
+                    'user_id' => $userId,
+                    'amount'  => $rate,
+                    'source'  => 'nid_search',
+                    'note'    => "NID Search | source={$source} | NID={$nid} | DOB={$dateOfBirth}",
+                ]);
+
+                Voter::create([
+                    'nid'               => $nid,
+                    'pin'               => $pin,
+                    'user_id'           => $userId,
+                    'file_types'        => 2,
+                    'formNo'            => $formNo,
+                    'sl_no'             => $sl_no,
+                    'father_nid'        => $father_nid,
+                    'mother_nid'        => $mother_nid,
+                    'religion'          => $religion,
+                    'mobile'            => $mobile,
+                    'voterNo'           => $voterNo,
+                    'voterArea'         => $voterArea,
+                    'education'         => $education,
+                    'occupation'        => $occupation,
+                    'status'            => $status,
+                    'nameBangla'        => $nameBangla,
+                    'nameEnglish'       => $nameEnglish,
+                    'dateOfBirth'       => $dateOfBirth,
+                    'birthPlace'        => $birthPlace,
+                    'fatherName'        => $fatherName,
+                    'motherName'        => $motherName,
+                    'spouseName'        => $spouseName,
+                    'gender'            => $gender,
+                    'bloodGroup'        => $bloodGroup,
+                    'presentAddress'    => $presentAddress,
+                    'permanentAddress'  => $permanentAddress,
+                    'address'           => $address,
+                    'image_photo'       => $photoPath,
+                    'image_sign'        => $signPath,
+                    'issueDate'         => now()->toDateString(),
+                ]);
+
+            });
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'ok' => true,
+                    'message' => 'ডাটা সেভ হয়েছে ✅',
+                ]);
+            }
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function auto_server_copy_data_get(Request $request)
+    {
+        // Blade থেকে date আসবে (optional)
+        $date = $request->date;
+
+        $query = Voter::where('user_id', auth()->id())
+            ->where('file_types', '!=', 1);
+
+        // ✅ যদি date পাঠায়
+        if (!empty($date)) {
+            $query->whereDate('created_at', $date);
+        } else {
+            // ❗ date না পাঠালে আজকের ডাটা
+            $query->whereDate('created_at', now()->toDateString());
+        }
+
+        $all_server_copy = $query->latest()->get();
+
+
+        return response()->json([
+            'ok' => true,
+            'data' => $all_server_copy
+        ]);
+    }
+
+    public function servercopyToken()
+    {
+        $key = config('services.servercopy.key'); // নিচের config থেকে নিবে
+
+        try {
+            $res = Http::withoutVerifying()
+                    ->retry(3, 500)
+                    ->timeout(30)
+                    ->get('https://api.nid-servercopy.com/?key=d7003dabbb99f9fd4a0570e8e8e26f0a');
+
+            if (!$res->successful()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'API failed: ' . $res->status(),
+                ], 500);
+            }
+
+            $data = $res->json(); // decoded array
+
+            // expected: { status: 1, balance: 89, ... }
+            if (($data['status'] ?? 0) != 1) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Invalid response from API',
+                    'data' => $data,
+                ], 422);
+            }
+
+            return response()->json([
+                'ok' => true,
+                'balance' => $data['balance'] ?? 0,
+                'purchase_time' => $data['purchase_time'] ?? null,
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
 
